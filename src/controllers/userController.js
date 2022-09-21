@@ -1,12 +1,9 @@
 // External Modules:
 const createError = require('http-errors')
-const path = require('path')
-const fs = require('fs')
 
 // Internal Modules:
 const People = require('../models/peopleModel')
 const { unlinkSingleImage } = require('../utils/fileUnlink')
-const { mongooseErrorFomatter } = require('../utils/schemaValidator')
 const emptyDirectory = require('../utils/emptyDirectory')
 
 /**
@@ -31,14 +28,11 @@ const createUser = async (req, res, next) => {
     let token = user.generateJwtToken(userData)
     res.status(200).json({ status: 'success', data: { ...userData, token } })
   } catch (error) {
-    if (error._message) {
-      res.status(500).json({
-        status: 'fail',
-        message: 'Input Validation Failed',
-        details: mongooseErrorFomatter(error.errors),
-      })
+    if (error?._message) {
+      let message = error?.message?.split(':').pop()
+      next(createError(422, message))
     } else {
-      next(createError(500, 'Data Failed to Create'))
+      next(createError(500, error))
     }
   }
 }
@@ -170,12 +164,9 @@ const updateUser = async (req, res, next) => {
     let token = user.generateJwtToken(userData)
     res.status(200).json({ status: 'success', data: { ...userData, token } })
   } catch (error) {
-    if (error._message) {
-      res.status(500).json({
-        status: 'fail',
-        message: 'Input Validation Failed',
-        details: mongooseErrorFomatter(error.errors),
-      })
+    if (error?._message) {
+      let message = error?.message?.split(':').pop()
+      next(createError(422, message))
     } else {
       next(createError(500, error))
     }

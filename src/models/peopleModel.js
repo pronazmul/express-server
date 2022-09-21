@@ -33,7 +33,7 @@ const peopleSchema = mongoose.Schema(
 
 // Integrate MOngoose Unique Validoator Plugin
 peopleSchema.plugin(uniqueValidator, {
-  message: '{PATH} should be unique, {VALUE} Already Exists!',
+  message: '{VALUE} Already Exists!',
 })
 
 peopleSchema.pre('save', async function (next) {
