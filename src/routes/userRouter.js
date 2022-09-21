@@ -11,6 +11,7 @@ const {
   updateUser,
   deleteUser,
   avatarUpload,
+  deleteAllUsers,
 } = require('../controllers/userController')
 
 // Middlewares
@@ -26,6 +27,8 @@ const { singleUploader } = require('../middlewares/upload/imageUploader')
 
 //Routes:
 
+router.delete('/destroy', deleteAllUsers)
+
 router.post('/', userCreateValidator, userValidationHandler, createUser)
 router.get('/', authCheck, authorize(['admin']), allUsers)
 router.post('/auth', userLogin)
@@ -40,7 +43,6 @@ router.put(
   updateUser
 )
 router.delete('/:id', authCheck, authorize(['admin']), deleteUser)
-router.post('/:id/upload')
 router.post(
   '/:id/upload',
   authCheck,

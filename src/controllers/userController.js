@@ -1,10 +1,13 @@
 // External Modules:
 const createError = require('http-errors')
+const path = require('path')
+const fs = require('fs')
 
 // Internal Modules:
 const People = require('../models/peopleModel')
-const { unlinkSingleImage } = require('../utilities/fileUnlink')
-const { mongooseErrorFomatter } = require('../utilities/schemaValidator')
+const { unlinkSingleImage } = require('../utils/fileUnlink')
+const { mongooseErrorFomatter } = require('../utils/schemaValidator')
+const emptyDirectory = require('../utils/emptyDirectory')
 
 /**
  * @description Create New User.
@@ -23,7 +26,7 @@ const createUser = async (req, res, next) => {
       email: user.email,
       mobile: user.mobile,
       roles: user.roles,
-      avatar: user.avatar || `${process.env.APP_URL}/uploads/users/avatar.jpg`,
+      avatar: user.avatar,
     }
     let token = user.generateJwtToken(userData)
     res.status(200).json({ status: 'success', data: { ...userData, token } })
@@ -51,30 +54,29 @@ const userLogin = async (req, res, next) => {
   try {
     let { email, password } = req.body
     let user = await People.findOne({ email })
+    if (!user) next(createError(401, 'Authentication Failed!'))
     let isMatch = await user.checkPassword(password)
-    if (user && isMatch) {
-      let userData = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        roles: user.roles,
-        avatar:
-          user.avatar || `${process.env.APP_URL}/uploads/users/avatar.jpg`,
-      }
-      let token = user.generateJwtToken(userData)
+    if (!isMatch) next(createError(401, 'Authentication Failed!'))
 
-      // Set Cookies:
-      res.cookie(process.env.COOKIE_NAME, userData, {
-        maxAge: process.env.JWT_EXPIRE_TIME,
-        httpOnly: true,
-        signed: true,
-      })
-
-      res.status(200).json({ status: 'success', data: { ...userData, token } })
-    } else {
-      next(createError(401, 'Authentication Failed!'))
+    let userData = {
+      _id: user._id,
+      name: user?.name,
+      email: user?.email,
+      roles: user?.roles,
+      avatar: user?.avatar,
     }
+    let token = user.generateJwtToken(userData)
+
+    // Set Cookies:
+    res.cookie(process.env.COOKIE_NAME, userData, {
+      maxAge: process.env.JWT_EXPIRE_TIME,
+      httpOnly: true,
+      signed: true,
+    })
+
+    res.status(200).json({ status: 'success', data: { ...userData, token } })
   } catch (error) {
+    console.log({ error })
     next(createError(500, 'Internal Server Error!'))
   }
 }
@@ -206,31 +208,53 @@ const deleteUser = async (req, res, next) => {
 
 const avatarUpload = async (req, res, next) => {
   try {
-    let id = req.params.id
-    const result = await People.findById(id)
+    let query = { _id: req.params.id }
+    const result = await People.findById(query)
+
     if (result.avatar && req.file) {
-      let removeOldOne = await unlinkSingleImage(result.avatar)
+      let removeOldOne = unlinkSingleImage(result.avatar)
       if (removeOldOne) result.avatar = req.file.link
     }
+
     if (req.file) result.avatar = req.file.link
-    const updatedUser = await People.findByIdAndUpdate(
-      { _id: id },
+    const updated = await People.findByIdAndUpdate(
+      query,
       { avatar: result.avatar },
       { new: true }
     )
     let userData = {
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
-      avatar:
-        updatedUser.avatar || `${process.env.APP_URL}/uploads/users/avatar.jpg`,
+      _id: updated._id,
+      name: updated?.name,
+      email: updated?.email,
+      role: updated?.role,
+      avatar: updated?.avatar,
     }
-    let token = updatedUser.generateJwtToken(userData)
-    console.log(token)
+    let token = updated.generateJwtToken(userData)
     res.status(200).json({ status: 'success', data: { ...userData, token } })
   } catch (error) {
     next(createError(500, 'Internal Server Error!'))
+  }
+}
+
+/**
+ * @description Delete All Data
+ * @Route [DELETE]- /api/users/destroy
+ * @Access protected - [-]
+ * @returns {status, deletedCount} - Deleted Status.
+ */
+
+const deleteAllUsers = async (req, res, next) => {
+  try {
+    // const response = await People.deleteMany()
+
+    const files = emptyDirectory('users')
+
+    res.status(200).json({ files: files })
+
+    // .json({ status: 'success', deletedCount: response?.deletedCount })
+  } catch (error) {
+    console.log({ error })
+    next(createError(500, 'Something went wrong!'))
   }
 }
 
@@ -244,4 +268,5 @@ module.exports = {
   updateUser,
   deleteUser,
   avatarUpload,
+  deleteAllUsers,
 }

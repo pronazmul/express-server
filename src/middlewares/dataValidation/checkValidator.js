@@ -4,8 +4,8 @@ const createError = require('http-errors')
 
 // Internal Module
 const Check = require('../../models/checkModel')
-const { check: checkData } = require('../../utilities/constants')
-const { expressValidatorErrorFormatter } = require('../../utilities/helpers')
+const { check: checkData } = require('../../utils/constants')
+const { expressValidatorErrorFormatter } = require('../../utils/helpers')
 
 // Validate Check Details while Adding
 const checkCreateValidator = [

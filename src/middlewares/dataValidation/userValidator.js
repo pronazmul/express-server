@@ -6,8 +6,8 @@ const { unlink } = require('fs')
 
 // Internal Module
 const User = require('../../models/peopleModel')
-const { expressValidatorErrorFormatter } = require('../../utilities/helpers')
-const { user } = require('../../utilities/constants')
+const { expressValidatorErrorFormatter } = require('../../utils/helpers')
+const { user } = require('../../utils/constants')
 
 // Validate User Data while Creating
 const userCreateValidator = [

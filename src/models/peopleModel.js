@@ -3,7 +3,7 @@ let mongoose = require('mongoose')
 let uniqueValidator = require('mongoose-unique-validator')
 let bcrypt = require('bcrypt')
 let jwt = require('jsonwebtoken')
-const { user } = require('../utilities/constants')
+const { user } = require('../utils/constants')
 
 const peopleSchema = mongoose.Schema(
   {
@@ -22,7 +22,10 @@ const peopleSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    avatar: String,
+    avatar: {
+      type: String,
+      default: `${process.env.APP_URL}/uploads/default/avatar.jpg`,
+    },
     roles: [{ type: String }],
   },
   { timestamps: true, versionKey: false }

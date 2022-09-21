@@ -1,6 +1,6 @@
 // Required Modules:
 const createError = require('http-errors')
-const multerObjectMaker = require('../../utilities/multarObjectMaker')
+const multerObjectMaker = require('../../utils/multarObjectMaker')
 
 /**
  * @desc Xlsx File Upload Middleware
