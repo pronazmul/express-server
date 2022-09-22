@@ -1,16 +1,24 @@
-// External Dependencies
 const colors = require('colors')
 const { mongooseConnection } = require('./db')
-require('dotenv').config()
-
-// Indernal Dependencies
+const { demoUsers } = require('./data')
 const People = require('../models/peopleModel')
 
-// Database Conenction
+// Configuration
 mongooseConnection()
+require('dotenv').config()
 
 // Import Data Seeder:
-const importData = async () => {}
+const importData = async () => {
+  try {
+    await People.deleteMany()
+    await People.insertMany(demoUsers)
+    console.log('Data Inserted'.magenta.inverse)
+    process.exit()
+  } catch (error) {
+    console.log(`Error: ${error}`.red.inverse)
+    process.exit(1)
+  }
+}
 
 // Destroy Data Seeder:
 const destroyData = async () => {
@@ -30,3 +38,10 @@ if (process.argv[2] === '-d') {
 } else {
   importData()
 }
+
+if (process.argv[2] === '-d') {
+  destroyData()
+} else {
+  importData()
+}
+import { demoUsers, users } from './data'

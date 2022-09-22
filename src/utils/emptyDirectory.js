@@ -11,4 +11,3 @@ const emptyDirectory = (dirName) => {
 }
 
 module.exports = emptyDirectory
- 
