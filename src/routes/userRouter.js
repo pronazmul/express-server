@@ -24,10 +24,12 @@ const { createUserSchema } = require('../utils/yupValidationSchema')
 
 //Routes:
 
+//Authenticate Route  router.get('/', authCheck, authorize(['admin']), allUsers)
+
 router.delete('/destroy', deleteAllUsers)
 
 router.post('/', dataValidation(createUserSchema), createUser)
-router.get('/', authCheck, authorize(['admin']), allUsers)
+router.get('/', allUsers)
 router.post('/auth', userLogin)
 router.get('/profile', authCheck, userProfile)
 router.get('/:id', authCheck, authorize(['admin']), getSingleUser)

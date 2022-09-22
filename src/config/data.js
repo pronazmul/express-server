@@ -1,4 +1,4 @@
-export const demoUsers = [
+const demoUsers = [
   {
     name: 'Nazmul Huda',
     email: 'nazmul@gmail.com',
@@ -72,12 +72,6 @@ export const demoUsers = [
     password: 'Password@01',
   },
   {
-    name: 'Utsa',
-    email: 'utsa@gmail.com',
-    mobile: '01746243313',
-    password: 'Password@01',
-  },
-  {
     name: 'Rana',
     email: 'rana@gmail.com',
     mobile: '01746243314',
@@ -119,4 +113,12 @@ export const demoUsers = [
     mobile: '01746243320',
     password: 'Password@01',
   },
+  {
+    name: 'Utsa',
+    email: 'utsa@gmail.com',
+    mobile: '01746243321',
+    password: 'Password@01',
+  },
 ]
+
+module.exports = { demoUsers }

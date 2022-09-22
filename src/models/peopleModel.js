@@ -26,7 +26,7 @@ const peopleSchema = mongoose.Schema(
       type: String,
       default: `${process.env.APP_URL}/uploads/default/avatar.jpg`,
     },
-    roles: [{ type: String }],
+    roles: [{ type: String, default: 'user' }],
   },
   { timestamps: true, versionKey: false }
 )

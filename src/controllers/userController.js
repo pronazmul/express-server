@@ -5,6 +5,7 @@ const createError = require('http-errors')
 const People = require('../models/peopleModel')
 const { unlinkSingleImage } = require('../utils/fileUnlink')
 const emptyDirectory = require('../utils/emptyDirectory')
+const { regxSearchQuery } = require('../utils/mongoose')
 
 /**
  * @description Create New User.
@@ -18,12 +19,12 @@ const createUser = async (req, res, next) => {
     let newUser = new People(req.body)
     let user = await newUser.save()
     let userData = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      mobile: user.mobile,
-      roles: user.roles,
-      avatar: user.avatar,
+      _id: user?._id,
+      name: user?.name,
+      email: user?.email,
+      mobile: user?.mobile,
+      roles: user?.roles,
+      avatar: user?.avatar,
     }
     let token = user.generateJwtToken(userData)
     res.status(200).json({ status: 'success', data: { ...userData, token } })
@@ -110,17 +111,25 @@ const getSingleUser = async (req, res, next) => {
 
 /**
  * @description Retrive All Users
- * @Route [GET]- /api/users
+ * @Route [GET]- /api/users?search='abc'&page=1&limit=10
  * @Access protected - [admin]
  * @returns {Array} - All User Array.
  */
 
 const allUsers = async (req, res, next) => {
   try {
-    let query = {}
-    let projection = 'name email mobile roles avatar'
+    const { search, page = 0, limit = 0 } = req.query
+    const query = search
+      ? regxSearchQuery(search, ['name', 'email', 'mobile'])
+      : {}
+    const projection = 'name email mobile roles avatar'
+
+    const totalCount = await People.countDocuments(query)
     const users = await People.find(query, projection)
-    res.status(200).json({ status: 'success', data: users })
+      .limit(limit)
+      .skip(limit * (page - 1))
+
+    res.status(200).json({ status: 'success', data: users, totalCount })
   } catch (error) {
     next(createError(500, 'Data Failed to Fetch'))
   }
@@ -201,8 +210,9 @@ const avatarUpload = async (req, res, next) => {
   try {
     let query = { _id: req.params.id }
     const result = await People.findById(query)
+    const isDemo = result?.avatar.split('/').includes('default')
 
-    if (result.avatar && req.file) {
+    if (result?.avatar && !isDemo && req.file) {
       let removeOldOne = unlinkSingleImage(result.avatar)
       if (removeOldOne) result.avatar = req.file.link
     }
@@ -236,13 +246,14 @@ const avatarUpload = async (req, res, next) => {
 
 const deleteAllUsers = async (req, res, next) => {
   try {
-    // const response = await People.deleteMany()
+    const users = await People.deleteMany()
+    const avatars = emptyDirectory('users')
 
-    const files = emptyDirectory('users')
-
-    res.status(200).json({ files: files })
-
-    // .json({ status: 'success', deletedCount: response?.deletedCount })
+    res.status(200).json({
+      status: 'success',
+      deletedCount: users?.deletedCount,
+      avatarDeletedCount: avatars,
+    })
   } catch (error) {
     console.log({ error })
     next(createError(500, 'Something went wrong!'))

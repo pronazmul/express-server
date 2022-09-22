@@ -1,17 +1,19 @@
 const colors = require('colors')
 const { mongooseConnection } = require('./db')
 const { demoUsers } = require('./data')
-const People = require('../models/peopleModel')
 
 // Configuration
-mongooseConnection()
 require('dotenv').config()
+mongooseConnection()
+
+//Models
+const People = require('../models/peopleModel')
 
 // Import Data Seeder:
 const importData = async () => {
   try {
     await People.deleteMany()
-    await People.insertMany(demoUsers)
+    await People.create(demoUsers)
     console.log('Data Inserted'.magenta.inverse)
     process.exit()
   } catch (error) {
@@ -44,4 +46,3 @@ if (process.argv[2] === '-d') {
 } else {
   importData()
 }
-import { demoUsers, users } from './data'
