@@ -5,7 +5,6 @@ const router = require('express').Router()
 const {
   createUser,
   userLogin,
-  userProfile,
   getSingleUser,
   allUsers,
   updateUser,
@@ -17,6 +16,7 @@ const {
 // Middlewares
 const authCheck = require('../middlewares/authentication/authCheck')
 const authorize = require('../middlewares/authentication/authorize')
+const authorizeSelf = require('../middlewares/authentication/authorizeSelf')
 const dataValidation = require('../middlewares/dataValidation')
 const { singleConvertToWebp } = require('../middlewares/upload/imageConverter')
 const { singleUploader } = require('../middlewares/upload/imageUploader')
@@ -24,21 +24,31 @@ const { createUserSchema } = require('../utils/yupValidationSchema')
 
 //Routes:
 
-//Authenticate Route  router.get('/', authCheck, authorize(['admin']), allUsers)
-
 router.delete('/destroy', deleteAllUsers)
 
 router.post('/', dataValidation(createUserSchema), createUser)
 router.get('/', allUsers)
 router.post('/auth', userLogin)
-router.get('/profile', authCheck, userProfile)
-router.get('/:id', authCheck, authorize(['admin']), getSingleUser)
-router.put('/:id', authCheck, authorize(['admin', 'user']), updateUser)
+router.get(
+  '/:id',
+  authCheck,
+  authorize(['admin', 'user']),
+  authorizeSelf,
+  getSingleUser
+)
+router.put(
+  '/:id',
+  authCheck,
+  authorize(['admin', 'user']),
+  authorizeSelf,
+  updateUser
+)
 router.delete('/:id', authCheck, authorize(['admin']), deleteUser)
 router.post(
   '/:id/upload',
   authCheck,
   authorize(['admin', 'user']),
+  authorizeSelf,
   singleUploader('avatar', 'users'),
   singleConvertToWebp('users'),
   avatarUpload
