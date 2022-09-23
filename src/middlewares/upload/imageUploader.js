@@ -1,6 +1,6 @@
 // Required Modules:
 const createError = require('http-errors')
-const multerObjectMaker = require('../../utils/multarObjectMaker')
+const multerObjectMaker = require('../../utils/multar')
 
 /**
  * @desc Single Image Upload Middleware, validate image format and size, upload and return direct image link as req.file

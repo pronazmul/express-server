@@ -13,7 +13,8 @@ const authCheck = async (req, res, next) => {
   try {
     let token = req.headers.authorization.split(' ')[1]
     let decoded = jwt.verify(token, process.env.JWT_SECRET)
-    let user = await People.findOne({ _id: decoded._id }).select(
+    console.log({ decoded })
+    let user = await People.findOne({ _id: decoded?.user?._id }).select(
       '-password -createdAt -updatedAt'
     )
     req.user = user

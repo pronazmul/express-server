@@ -26,6 +26,27 @@ const createUserSchema = yup.object().shape({
     .required('Password Is Required!'),
 })
 
+const loginSchema = yup.object().shape({
+  email: yup
+    .string()
+    .matches(regx.email, 'Authentication Failed')
+    .required('Email is Required!'),
+  password: yup
+    .string()
+    .matches(regx.password, 'Authentication Failed')
+    .required('Password Is Required!'),
+})
+
+const updateUserSchema = yup.object().shape({
+  name: yup.string().optional(),
+  email: yup.string().optional().matches(regx.email, 'Invalid Email Address!'),
+  mobile: yup
+    .string()
+    .optional()
+    .matches(regx.mobile, 'Invalid Mobile Number!'),
+  password: yup.string().optional().matches(regx.password, 'Invalid Password!'),
+})
+
 const proudctAddSchema = yup.object().shape({
   name: yup
     .string()
@@ -55,17 +76,6 @@ const proudctAddSchema = yup.object().shape({
     .max(5, 'Maximum Stock Limit!')
     .required('Stock is Required!'),
   images: yup.array().min(1, 'Minimum 1 Product Image Required'),
-})
-
-const loginSchema = yup.object().shape({
-  email: yup
-    .string()
-    .matches(regx.email, 'Invalid Email Address!')
-    .required('Email is Required!'),
-  password: yup
-    .string()
-    .matches(regx.password, 'Invalid Password!')
-    .required('Password Is Required!'),
 })
 
 const addDonorSchema = yup.object().shape({
@@ -100,19 +110,6 @@ const addCharitySchema = yup.object().shape({
     .required('Net Price is Rquired!'),
   city: yup.string().required('Charity City is Requied!'),
   division: yup.string().required('Charity division is Requied!'),
-})
-
-const updateUserSchema = yup.object().shape({
-  name: yup.string().required('Name is Required!'),
-  email: yup
-    .string()
-    .matches(regx.email, 'Invalid Email Address!')
-    .required('Email is Required!'),
-  mobile: yup
-    .string()
-    .matches(regx.mobile, 'Invalid Mobile Number!')
-    .required('Mobile Number is Required!'),
-  password: yup.string().matches(regx.password, 'Invalid Password!'),
 })
 
 const updateDonorSchema = yup.object().shape({
@@ -172,4 +169,4 @@ const updateCustomerSchema = yup.object().shape({
   cuttRatioFromAdvance: yup.string().optional(),
 })
 
-module.exports = { createUserSchema }
+module.exports = { createUserSchema, loginSchema, updateUserSchema }

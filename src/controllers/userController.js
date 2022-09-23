@@ -3,8 +3,8 @@ const createError = require('http-errors')
 
 // Internal Modules:
 const People = require('../models/peopleModel')
-const { unlinkSingleImage } = require('../utils/fileUnlink')
-const emptyDirectory = require('../utils/emptyDirectory')
+const Session = require('../models/sessionModel')
+const { unlinkSingleImage, emptyDirectory } = require('../utils/files')
 const { regxSearchQuery } = require('../utils/mongoose')
 
 /**
@@ -49,46 +49,49 @@ const userLogin = async (req, res, next) => {
   try {
     let { email, password } = req.body
     let user = await People.findOne({ email })
-    if (!user) next(createError(401, 'Authentication Failed!'))
     let isMatch = await user.checkPassword(password)
-    if (!isMatch) next(createError(401, 'Authentication Failed!'))
 
-    let userData = {
-      _id: user._id,
-      name: user?.name,
-      email: user?.email,
-      roles: user?.roles,
-      avatar: user?.avatar,
+    if (user && isMatch) {
+      let session = await Session.create({
+        user: user?._id,
+        userAgent: req.headers['user-agent'],
+      })
+
+      let userData = {
+        _id: user._id,
+        name: user?.name,
+        email: user?.email,
+        roles: user?.roles,
+        avatar: user?.avatar,
+      }
+      let accessToken = user.generateJwtToken({ user: userData, session })
+
+      let refreshToken = user.generateJwtToken(
+        { session },
+        process.env.REFRESH_TOKEN
+      )
+
+      res.cookie('accessToken', accessToken, {
+        maxAge: process.env.ACCESS_TOKEN,
+        httpOnly: true,
+        signed: true,
+      })
+
+      res.cookie('refreshToken', refreshToken, {
+        maxAge: process.env.REFRESH_TOKEN,
+        httpOnly: true,
+        signed: true,
+      })
+
+      res
+        .status(200)
+        .json({ status: 'success', data: { ...userData, token: accessToken } })
+    } else {
+      next(createError(401, 'Authentication Failed!'))
     }
-    let token = user.generateJwtToken(userData)
-
-    // Set Cookies:
-    res.cookie(process.env.COOKIE_NAME, userData, {
-      maxAge: process.env.JWT_EXPIRE_TIME,
-      httpOnly: true,
-      signed: true,
-    })
-
-    res.status(200).json({ status: 'success', data: { ...userData, token } })
   } catch (error) {
-    console.log({ error })
+    console.log({ errors: error })
     next(createError(500, 'Internal Server Error!'))
-  }
-}
-
-/**
- * @description Retrive Logged In user Info from token
- * @Route [GET]- /api/users/profile
- * @Access private - logged in user
- * @returns {Object} - User Profile Object.
- */
-
-const userProfile = async (req, res, next) => {
-  try {
-    let user = req.user
-    res.status(200).json({ status: 'success', data: user })
-  } catch (error) {
-    next(createError(500, 'Internal Server Errors!'))
   }
 }
 
@@ -157,9 +160,7 @@ const updateUser = async (req, res, next) => {
       ...req.body,
       password,
       roles: existedUser.roles,
-      userType: existedUser.userType,
     }
-
     const user = await People.findOneAndUpdate(query, updatedData, options)
 
     let userData = {
@@ -168,7 +169,7 @@ const updateUser = async (req, res, next) => {
       email: user.email,
       roles: user.roles,
       mobile: user.mobile,
-      avatar: user.avatar || `${process.env.APP_URL}/uploads/users/avatar.jpg`,
+      avatar: user.avatar,
     }
     let token = user.generateJwtToken(userData)
     res.status(200).json({ status: 'success', data: { ...userData, token } })
@@ -264,7 +265,6 @@ const deleteAllUsers = async (req, res, next) => {
 module.exports = {
   createUser,
   userLogin,
-  userProfile,
   getSingleUser,
   allUsers,
   updateUser,

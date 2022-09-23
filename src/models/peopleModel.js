@@ -64,9 +64,12 @@ peopleSchema.methods.makeHash = async function (password) {
  * @param {object} userObject
  * @returns jwt token
  */
-peopleSchema.methods.generateJwtToken = function (userObject) {
+peopleSchema.methods.generateJwtToken = function (
+  userObject,
+  expires = process.env.JWT_EXPIRE_TIME
+) {
   return jwt.sign(userObject, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE_TIME,
+    expiresIn: expires,
   })
 }
 

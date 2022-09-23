@@ -2,7 +2,7 @@
 const path = require('path')
 const createError = require('http-errors')
 const sharp = require('sharp')
-const { unlinkSingleImage } = require('../../utils/fileUnlink')
+const { unlinkSingleImage } = require('../../utils/files')
 
 /**
  * @desc Single Image Convert To Webp Middleware, If already webp format return to next middleware()
