@@ -64,6 +64,7 @@ const userLogin = async (req, res, next) => {
         roles: user?.roles,
         avatar: user?.avatar,
       }
+
       let accessToken = user.generateJwtToken({ user: userData, session })
 
       let refreshToken = user.generateJwtToken(
@@ -74,13 +75,11 @@ const userLogin = async (req, res, next) => {
       res.cookie('accessToken', accessToken, {
         maxAge: process.env.ACCESS_TOKEN,
         httpOnly: true,
-        signed: true,
       })
 
       res.cookie('refreshToken', refreshToken, {
         maxAge: process.env.REFRESH_TOKEN,
         httpOnly: true,
-        signed: true,
       })
 
       res
@@ -90,7 +89,36 @@ const userLogin = async (req, res, next) => {
       next(createError(401, 'Authentication Failed!'))
     }
   } catch (error) {
-    console.log({ errors: error })
+    next(createError(500, 'Internal Server Error!'))
+  }
+}
+
+/**
+ * @description Logout User ()
+ * @Route [POST]- /api/users/auth/logout
+ * @Access Private
+ * @returns {Object} - loggedout
+ */
+
+const userLogout = async (req, res, next) => {
+  try {
+    let query = { _id: req.session._id }
+    let update = {
+      valid: false,
+    }
+    await Session.findOneAndUpdate(query, update)
+
+    res.cookie('accessToken', '', {
+      maxAge: 0,
+      httpOnly: true,
+    })
+
+    res.cookie('refreshToken', '', {
+      maxAge: 0,
+      httpOnly: true,
+    })
+    res.status(200).json({ status: 'success', data: true })
+  } catch (error) {
     next(createError(500, 'Internal Server Error!'))
   }
 }
@@ -108,6 +136,7 @@ const getSingleUser = async (req, res, next) => {
     const user = await People.findOne(query, projection)
     res.status(200).json({ status: 'success', data: user })
   } catch (error) {
+    console.log('yyy')
     next(createError(500, 'Internal Server Error!'))
   }
 }
@@ -265,6 +294,7 @@ const deleteAllUsers = async (req, res, next) => {
 module.exports = {
   createUser,
   userLogin,
+  userLogout,
   getSingleUser,
   allUsers,
   updateUser,

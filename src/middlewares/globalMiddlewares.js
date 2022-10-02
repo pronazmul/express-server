@@ -1,5 +1,5 @@
 const cookieParser = require('cookie-parser')
-let { json, static } = require('express')
+let { json, static, urlencoded } = require('express')
 const expressRateLimit = require('express-rate-limit')
 const path = require('path')
 const morgan = require('morgan')
@@ -14,7 +14,8 @@ const cors = require('cors')
  */
 const globalMiddlewares = [
   morgan('dev'),
-  cors({ origin: '*' }),
+  cors({ origin: 'http://localhost:3000', credentials: true }),
+  cookieParser(),
   expressRateLimit({
     windowMs: 1 * 60 * 1000, // 1 Munite
     max: 100, // How many Request Excepted Each 1 Munite
@@ -24,6 +25,6 @@ const globalMiddlewares = [
   }),
   static(path.join(__dirname, '../../public')),
   json(),
-  cookieParser(process.env.COOKIE_SECRET),
+  urlencoded({ extended: false }),
 ]
 module.exports = globalMiddlewares

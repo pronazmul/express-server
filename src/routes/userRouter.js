@@ -11,10 +11,11 @@ const {
   deleteUser,
   avatarUpload,
   deleteAllUsers,
+  userLogout,
 } = require('../controllers/userController')
 
 // Middlewares
-const authCheck = require('../middlewares/authentication/authCheck')
+
 const authorize = require('../middlewares/authentication/authorize')
 const authorizeSelf = require('../middlewares/authentication/authorizeSelf')
 const validateRequest = require('../middlewares/validateRequest')
@@ -25,23 +26,24 @@ const {
   loginSchema,
   updateUserSchema,
 } = require('../schema/userSchema')
-const { authTest } = require('../middlewares/authentication/authTest')
+const authCheck = require('../middlewares/authentication/authCheckCookie')
 
 //Routes:
 
 router.delete('/destroy', deleteAllUsers)
-
 router.post('/', validateRequest(createUserSchema), createUser)
 router.post('/auth', validateRequest(loginSchema), userLogin)
+router.post('/auth/logout', authCheck, userLogout)
 router.get('/', authCheck, authorize(['admin']), allUsers)
+
 router.get(
   '/:id',
-  authTest,
-  // authCheck,
-  // authorize(['admin', 'user']),
-  // authorizeSelf,
+  authCheck,
+  authorize(['admin', 'user']),
+  authorizeSelf,
   getSingleUser
 )
+
 router.put(
   '/:id',
   validateRequest(updateUserSchema),
