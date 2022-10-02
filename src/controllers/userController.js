@@ -3,7 +3,6 @@ const createError = require('http-errors')
 
 // Internal Modules:
 const People = require('../models/peopleModel')
-const Session = require('../models/sessionModel')
 const { unlinkSingleImage, emptyDirectory } = require('../utils/files')
 const { regxSearchQuery } = require('../utils/mongoose')
 
@@ -52,11 +51,6 @@ const userLogin = async (req, res, next) => {
     let isMatch = await user.checkPassword(password)
 
     if (user && isMatch) {
-      let session = await Session.create({
-        user: user?._id,
-        userAgent: req.headers['user-agent'],
-      })
-
       let userData = {
         _id: user._id,
         name: user?.name,
@@ -64,28 +58,8 @@ const userLogin = async (req, res, next) => {
         roles: user?.roles,
         avatar: user?.avatar,
       }
-      let accessToken = user.generateJwtToken({ user: userData, session })
-
-      let refreshToken = user.generateJwtToken(
-        { session },
-        process.env.REFRESH_TOKEN
-      )
-
-      res.cookie('accessToken', accessToken, {
-        maxAge: process.env.ACCESS_TOKEN,
-        httpOnly: true,
-        signed: true,
-      })
-
-      res.cookie('refreshToken', refreshToken, {
-        maxAge: process.env.REFRESH_TOKEN,
-        httpOnly: true,
-        signed: true,
-      })
-
-      res
-        .status(200)
-        .json({ status: 'success', data: { ...userData, token: accessToken } })
+      let token = user.generateJwtToken({ user: userData })
+      res.status(200).json({ status: 'success', data: { ...userData, token } })
     } else {
       next(createError(401, 'Authentication Failed!'))
     }

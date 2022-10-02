@@ -25,7 +25,6 @@ const {
   loginSchema,
   updateUserSchema,
 } = require('../schema/userSchema')
-const { authTest } = require('../middlewares/authentication/authTest')
 
 //Routes:
 
@@ -35,11 +34,10 @@ router.post('/', validateRequest(createUserSchema), createUser)
 router.post('/auth', validateRequest(loginSchema), userLogin)
 router.get('/', authCheck, authorize(['admin']), allUsers)
 router.get(
-  '/:id',
-  authTest,
-  // authCheck,
-  // authorize(['admin', 'user']),
-  // authorizeSelf,
+  '/:id',,
+  authCheck,
+  authorize(['admin', 'user']),
+  authorizeSelf,
   getSingleUser
 )
 router.put(

@@ -24,6 +24,6 @@ const globalMiddlewares = [
   }),
   static(path.join(__dirname, '../../public')),
   json(),
-  cookieParser(process.env.COOKIE_SECRET),
+  cookieParser(),
 ]
 module.exports = globalMiddlewares
